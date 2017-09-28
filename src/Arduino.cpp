@@ -2,9 +2,11 @@
 #include <Serial.h>
 #include <iostream>
 #include <unordered_map>
+#include <chrono>
 
 using namespace std;
 using std::unordered_map;
+using namespace std::chrono;
 
 SerialClass Serial;
 
@@ -15,7 +17,10 @@ void setup();
 void loop();
 
 long millis() {
-    return 0;
+    static long long start_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    long long cur_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    cur_time -= start_time;
+    return (long) cur_time;
 }
 
 void pinMode(int pin, int mode) {

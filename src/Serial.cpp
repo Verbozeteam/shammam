@@ -50,14 +50,21 @@ void SerialClass::begin(int baud) {
 void SerialClass::write(char c) {
     if (m_client_socketfd != -1)
         send(m_client_socketfd, &c, 1, 0);
+    // printf("Writing %u\n", ((int)c) & 0xFF);
 }
 
 void SerialClass::write(char* str, int len) {
+    // printf("Writing...");
+    // for (int i = 0; i < len; i++)
+    //     printf(" %u", ((int)str[i]) & 0xFF);
+    // printf("\n");
     if (m_client_socketfd != -1)
         send(m_client_socketfd, str, len, 0);
 }
 
 int SerialClass::available() {
+    // if (m_buffer.length() > 0)
+    //     printf("%d bytes available!\n", (int)m_buffer.length());
     return m_buffer.length();
 }
 
@@ -67,6 +74,7 @@ char SerialClass::read() {
 
     char c = m_buffer[0];
     m_buffer = m_buffer.substr(1);
+    // printf("Reading %u\n", ((int)c) & 0xFF);
     return c;
 }
 
@@ -89,6 +97,7 @@ void SerialClass::__update__() {
             struct sockaddr_in address;
             int addrlen;
             m_client_socketfd = accept(m_socketfd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+            // printf("Client connected!\n");
         }
         if (m_client_socketfd != -1 && FD_ISSET(m_client_socketfd, &read_fds)) {
             char buffer[1024];
@@ -96,9 +105,11 @@ void SerialClass::__update__() {
             if (len == 0) {
                 close(m_client_socketfd);
                 m_client_socketfd = -1;
+                // printf("Client disconnected!\n");
             } else {
                 for (int i = 0; i < len; i++)
                     m_buffer += buffer[i];
+                // printf("Received smth!\n");
             }
         }
     }
