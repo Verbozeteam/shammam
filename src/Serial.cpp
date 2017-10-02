@@ -79,37 +79,39 @@ char SerialClass::read() {
 }
 
 void SerialClass::__update__() {
-    timeval tv = {0};
+    if (m_socketfd != -1) {
+        timeval tv = {0};
 
-    fd_set read_fds;
-    FD_ZERO(&read_fds);
-    FD_SET(m_socketfd, &read_fds);
-    if (m_client_socketfd != -1)
-        FD_SET(m_client_socketfd, &read_fds);
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(m_socketfd, &read_fds);
+        if (m_client_socketfd != -1)
+            FD_SET(m_client_socketfd, &read_fds);
 
-    int maxfd = m_socketfd > m_client_socketfd ? m_socketfd : m_client_socketfd;
+        int maxfd = m_socketfd > m_client_socketfd ? m_socketfd : m_client_socketfd;
 
-    int ret = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
-    if (ret > 0) {
-        if (FD_ISSET(m_socketfd, &read_fds)) {
-            if (m_client_socketfd != -1)
-                close(m_client_socketfd);
-            struct sockaddr_in address;
-            int addrlen;
-            m_client_socketfd = accept(m_socketfd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-            // printf("Client connected!\n");
-        }
-        if (m_client_socketfd != -1 && FD_ISSET(m_client_socketfd, &read_fds)) {
-            char buffer[1024];
-            int len = recv(m_client_socketfd, buffer, 1024, 0);
-            if (len == 0) {
-                close(m_client_socketfd);
-                m_client_socketfd = -1;
-                // printf("Client disconnected!\n");
-            } else {
-                for (int i = 0; i < len; i++)
-                    m_buffer += buffer[i];
-                // printf("Received smth!\n");
+        int ret = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
+        if (ret > 0) {
+            if (FD_ISSET(m_socketfd, &read_fds)) {
+                if (m_client_socketfd != -1)
+                    close(m_client_socketfd);
+                struct sockaddr_in address;
+                int addrlen;
+                m_client_socketfd = accept(m_socketfd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+                // printf("Client connected!\n");
+            }
+            if (m_client_socketfd != -1 && FD_ISSET(m_client_socketfd, &read_fds)) {
+                char buffer[1024];
+                int len = recv(m_client_socketfd, buffer, 1024, 0);
+                if (len == 0) {
+                    close(m_client_socketfd);
+                    m_client_socketfd = -1;
+                    // printf("Client disconnected!\n");
+                } else {
+                    for (int i = 0; i < len; i++)
+                        m_buffer += buffer[i];
+                    // printf("Received smth!\n");
+                }
             }
         }
     }

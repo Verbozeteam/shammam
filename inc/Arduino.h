@@ -1,5 +1,5 @@
-#ifndef __ARDUINO_SIMULATION__
-#define __ARDUINO_SIMULATION__
+#ifndef __SHAMMAM_SIMULATION__
+#define __SHAMMAM_SIMULATION__
 
 #include <Serial.h>
 
