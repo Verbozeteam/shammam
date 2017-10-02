@@ -11,7 +11,7 @@ using grpc::ServerContext;
 using grpc::Status;
 
 // Logic and data behind the RPC server's behavior.
-class ArduinoServiceImpl final : public shammam::Arduino::Service {
+class ArduinoServiceImpl : public shammam::Arduino::Service {
         Status GetPinState(
             ServerContext* context,
             const shammam::Pin* request,
