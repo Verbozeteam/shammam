@@ -1,7 +1,5 @@
-#pragma once
-
-#ifndef __ARDUINO_H__
-#define __ARDUINO_H__
+#ifndef __ARDUINO_SIMULATION__
+#define __ARDUINO_SIMULATION__
 
 #include <Serial.h>
 
@@ -17,5 +15,11 @@ void digitalWrite(int  pin, int output);
 void analogWrite(int pin, int output);
 int analogRead(int pin);
 int digitalRead(int pin);
+
+int __get_pin_state(int type, int pin);
+void __set_pin_state(int type, int pin, int state);
+void __reset_pins();
+
+void runRPC(string addr);
 
 #endif

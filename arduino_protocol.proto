@@ -1,0 +1,29 @@
+
+syntax = "proto3";
+
+package shammam;
+
+service Arduino {
+  rpc GetPinState (Pin) returns (State) {}
+  rpc SetPinState (PinAndState) returns (State) {}
+  rpc ResetPins (Empty) returns (Empty) {}
+}
+
+message Pin {
+    int32 type = 1; // 0 for digital, 1 for analog
+    int32 index = 2; // pin index
+}
+
+message State {
+    int32 state = 1; // pin current input or output
+}
+
+message PinAndState {
+    int32 type = 1; // 0 for digital, 1 for analog
+    int32 index = 2; // pin index
+    int32 state = 3; // pin current input or output
+}
+
+message Empty {
+
+}

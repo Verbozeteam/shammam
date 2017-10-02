@@ -15,10 +15,16 @@ for F in cmd_args.source:
 
 include_directories = " ".join(map(lambda i: "-I{}".format(i), cmd_args.include)) if cmd_args.include != None else ""
 
+CPPFLAGS = "-std=c++11"
+LDFLAGS = "-L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc`"
+OUT_FILE = "tmp/shammam"
+
+protoc_command = "protoc --cpp_out=protocol --grpc_out=protocol arduino_protocol.proto --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin)"
+gcc_cmd = "g++ {} {} -include inc/Arduino.h -Iinc -Iprotocol {} protocol/*.cc src/*.cpp tmp/*.cpp -o {}".format(CPPFLAGS, LDFLAGS, include_directories, OUT_FILE)
+
 os.system("mkdir -p tmp")
 os.system("rm -rf inc/*.gch")
-gcc_cmd = "g++ -include inc/Arduino.h -Iinc {} src/*.cpp tmp/*.cpp -o tmp/shammam".format(include_directories)
-print (gcc_cmd)
-if not os.system(gcc_cmd):
-    os.system("./tmp/shammam")
+if not os.system(protoc_command): # compile the protocol
+    if not os.system(gcc_cmd):
+        os.system(OUT_FILE)
 
