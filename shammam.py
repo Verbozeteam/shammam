@@ -39,6 +39,10 @@ if cmd_args.protocol and cmd_args.protocol != "":
         print ("File not found: {}".format(cmd_args.protocol))
         exit(1)
     CPPFLAGS += " -D _CUSTOM_RPC_" # tell the code that there is a custom RPC declaration
+else:
+    if os.system("cp {} tmp/{}".format(PROTOCOL_FILENAME, PROTOCOL_FILENAME)):
+        print ("File not found: {}".format(PROTOCOL_FILENAME))
+        exit(1)
 
 protoc_command = "protoc --cpp_out=tmp --grpc_out=tmp -Itmp {} --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin)".format(PROTOCOL_FILENAME)
 gcc_cmd = "g++ {} {} {} -include {}/Arduino.h {} -o {}".format(CPPFLAGS, LDFLAGS, INCLUDE_DIRS, BASE_INCLUDE_DIR, SOURCE_FILES, OUT_FILE)

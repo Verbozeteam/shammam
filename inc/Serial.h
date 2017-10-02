@@ -15,8 +15,20 @@ class SerialClass {
 public:
     SerialClass();
     void begin(int baud);
+
+    void print(char val);
+    void print(int val);
+    void print(float val);
+    void print(char* str);
+
+    void println(char val);
+    void println(int val);
+    void println(float val);
+    void println(char* str);
+
     void write(char c);
     void write(char* str, int len);
+
     int available();
     char read();
 

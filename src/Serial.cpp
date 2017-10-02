@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstring>
 #include <Serial.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -47,24 +49,57 @@ void SerialClass::begin(int baud) {
     }
 }
 
+void SerialClass::print(char val) {
+    this->write(val);
+}
+
+void SerialClass::print(int val) {
+    char tmp[64];
+    sprintf(tmp, "%d", val);
+    this->write((char*)tmp, strlen(tmp));
+}
+
+void SerialClass::print(float val) {
+    char tmp[64];
+    sprintf(tmp, "%f", val);
+    this->write((char*)tmp, strlen(tmp));
+}
+
+void SerialClass::print(char* str) {
+    this->write(str, strlen(str));
+}
+
+void SerialClass::println(char val) {
+    this->print(val);
+    this->print('\n');
+}
+
+void SerialClass::println(int val) {
+    this->print(val);
+    this->print('\n');
+}
+
+void SerialClass::println(float val) {
+    this->print(val);
+    this->print('\n');
+}
+
+void SerialClass::println(char* str) {
+    this->print(str);
+    this->print('\n');
+}
+
 void SerialClass::write(char c) {
     if (m_client_socketfd != -1)
         send(m_client_socketfd, &c, 1, 0);
-    // printf("Writing %u\n", ((int)c) & 0xFF);
 }
 
 void SerialClass::write(char* str, int len) {
-    // printf("Writing...");
-    // for (int i = 0; i < len; i++)
-    //     printf(" %u", ((int)str[i]) & 0xFF);
-    // printf("\n");
     if (m_client_socketfd != -1)
         send(m_client_socketfd, str, len, 0);
 }
 
 int SerialClass::available() {
-    // if (m_buffer.length() > 0)
-    //     printf("%d bytes available!\n", (int)m_buffer.length());
     return m_buffer.length();
 }
 
@@ -74,7 +109,6 @@ char SerialClass::read() {
 
     char c = m_buffer[0];
     m_buffer = m_buffer.substr(1);
-    // printf("Reading %u\n", ((int)c) & 0xFF);
     return c;
 }
 
