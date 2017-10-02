@@ -1,61 +1,49 @@
 #include <Arduino.h>
+#include <RPC.h>
 #include <thread>
 #include <iostream>
 
-#include <grpc++/grpc++.h>
-#include "arduino_protocol.grpc.pb.h"
+Status ArduinoServiceBasicImpl::GetPinState(
+    ServerContext* context,
+    const shammam::Pin* request,
+    shammam::State* reply) {
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
+    reply->set_state(__get_pin_state(request->type(), request->index()));
+    return Status::OK;
+}
 
-// Logic and data behind the RPC server's behavior.
-class ArduinoServiceImpl : public shammam::Arduino::Service {
-        Status GetPinState(
-            ServerContext* context,
-            const shammam::Pin* request,
-            shammam::State* reply) override {
+Status ArduinoServiceBasicImpl::SetPinState(
+    ServerContext* context,
+    const shammam::PinAndState* request,
+    shammam::State* reply) {
 
-            std::cout << "GetPinState()\n";
+    __set_pin_state(request->type(), request->index(), request->state());
+    reply->set_state(__get_pin_state(request->type(), request->index()));
+    return Status::OK;
+}
 
-            reply->set_state(__get_pin_state(request->type(), request->index()));
-            return Status::OK;
-        }
+Status ArduinoServiceBasicImpl::ResetPins(
+    ServerContext* context,
+    const shammam::Empty* request,
+    shammam::Empty* reply) {
 
-        Status SetPinState(
-            ServerContext* context,
-            const shammam::PinAndState* request,
-            shammam::State* reply) override {
-
-            std::cout << "SetPinState()\n";
-
-            __set_pin_state(request->type(), request->index(), request->state());
-            reply->set_state(__get_pin_state(request->type(), request->index()));
-            return Status::OK;
-        }
-
-        Status ResetPins(
-            ServerContext* context,
-            const shammam::Empty* request,
-            shammam::Empty* reply) override {
-
-            std::cout << "ResetPins()\n";
-
-            __reset_pins();
-            return Status::OK;
-        }
-};
+    __reset_pins();
+    return Status::OK;
+}
 
 void rpc_thread(string addr) {
-    ArduinoServiceImpl service;
+#ifndef _CUSTOM_RPC_
+    shammam::Arduino::Service* service = new ArduinoServiceBasicImpl();
+#else
+    shammam::Arduino::Service* service = __get_rpc_service();
+#endif
 
     ServerBuilder builder;
     // Listen on the given address without any authentication mechanism.
     builder.AddListeningPort(addr, grpc::InsecureServerCredentials());
     // Register "service" as the instance through which we'll communicate with
     // clients. In this case it corresponds to an *synchronous* service.
-    builder.RegisterService(&service);
+    builder.RegisterService(service);
     // Finally assemble the server.
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "Server listening on " << addr << std::endl;
@@ -63,6 +51,8 @@ void rpc_thread(string addr) {
     // Wait for the server to shutdown. Note that some other thread must be
     // responsible for shutting down the server for this call to ever return.
     server->Wait();
+
+    delete service;
 }
 
 void runRPC(string addr) {
