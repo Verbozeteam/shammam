@@ -13,7 +13,7 @@ class SerialClass {
     string m_buffer;
 
 public:
-    SerialClass();
+    SerialClass(int port = 9911);
     void begin(int baud);
 
     void print(char val);

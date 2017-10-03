@@ -10,8 +10,8 @@
 #include <sys/select.h>
 #include <unistd.h>
 
-SerialClass::SerialClass() {
-    m_port = 9911;
+SerialClass::SerialClass(int port) {
+    m_port = port;
     m_socketfd = -1;
     m_client_socketfd = -1;
 }
@@ -19,6 +19,8 @@ SerialClass::SerialClass() {
 void SerialClass::begin(int baud) {
     struct sockaddr_in address;
     int opt = 1;
+
+    printf("Serial communication on port %d\n", m_port);
 
     m_socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if (!m_socketfd) {

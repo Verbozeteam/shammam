@@ -26,3 +26,5 @@ class ArduinoServiceBasicImpl : public shammam::Arduino::Service {
 };
 
 ArduinoServiceBasicImpl* __get_rpc_service();
+
+void runRPC(string addr);

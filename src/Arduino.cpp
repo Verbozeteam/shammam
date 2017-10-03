@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Serial.h>
+#include <RPC.h>
 #include <iostream>
 #include <unordered_map>
 #include <chrono>
@@ -18,11 +19,23 @@ unordered_map<int, int> g_digital_pin_map;
 void setup();
 void loop();
 
-long millis() {
+unsigned long millis() {
     static long long start_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     long long cur_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cur_time -= start_time;
     return (long) cur_time;
+}
+
+void delayMicroseconds(unsigned int us) {
+
+}
+
+void attachInterrupt(uint8_t, void (*)(void), int mode) {
+
+}
+
+void detachInterrupt(uint8_t) {
+
 }
 
 void pinMode(int pin, int mode) {
@@ -83,11 +96,21 @@ void __reset_pins() {
 int main(int argc, char* argv[]) {
     std::cout << "Shammam v1.0.0" << std::endl;
 
-    runRPC("0.0.0.0:5001");
+    int rpc_port = 5001;
+    if (argc > 1) {
+        rpc_port = atoi(argv[1]);
+        if (argc > 2) {
+            Serial = SerialClass(atoi(argv[2]));
+        }
+    }
+
+    runRPC("0.0.0.0:"+std::to_string(rpc_port));
 
     setup();
     while (1) {
         Serial.__update__();
         loop();
     }
+
+    return 0;
 }
