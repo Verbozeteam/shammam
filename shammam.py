@@ -9,6 +9,7 @@ parser.add_argument('-p', '--protocol', help='Custom protocol for the emulation 
 parser.add_argument('-pt', '--port', default=5001, help='Port to host the emulator RPC on (default is 5001)')
 parser.add_argument('-spt', '--serial_port', default=9911, help='Port to host the serial communication on (default is 991)')
 parser.add_argument('-n', '--name', default='shammam', help='Name of the emulator instance (an executable with that name will be generated) (default is "shammam")')
+parser.add_argument('-t', '--time', default=1, help='Time multiplier (default is 1)')
 cmd_args = parser.parse_args()
 
 tmp_folder = ".{}_tmp".format(cmd_args.name)
@@ -36,6 +37,7 @@ LDFLAGS = "-L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc`"
 OUT_FILE = cmd_args.name
 RPC_PORT = cmd_args.port
 SERIAL_PORT = cmd_args.serial_port
+TIME_MULTIPLIER = cmd_args.time
 PROTOCOL_FILENAME = "arduino_protocol.proto"
 
 if cmd_args.include != None:
@@ -61,5 +63,5 @@ if not os.system(protoc_command): # compile the protocol
 
 os.system("rm -rf {}/".format(tmp_folder))
 if succeeded:
-    os.system("./{} {} {}".format(OUT_FILE, RPC_PORT, SERIAL_PORT))
+    os.system("./{} --rpc_port {} --serial_port {} --time {}".format(OUT_FILE, RPC_PORT, SERIAL_PORT, TIME_MULTIPLIER))
 

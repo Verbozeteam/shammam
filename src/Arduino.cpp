@@ -15,6 +15,7 @@ SerialClass Serial;
 std::mutex g_pins_mutex;
 unordered_map<int, int> g_analog_pin_map;
 unordered_map<int, int> g_digital_pin_map;
+float g_time_multiplier = 1.0;
 
 void setup();
 void loop();
@@ -23,7 +24,7 @@ unsigned long millis() {
     static long long start_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     long long cur_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     cur_time -= start_time;
-    return (long) cur_time;
+    return (long) ((float)cur_time * g_time_multiplier);
 }
 
 void delayMicroseconds(unsigned int us) {
@@ -94,15 +95,67 @@ void __reset_pins() {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Shammam v1.0.0" << std::endl;
+    unordered_map<string, std::pair<string, string>> params = {
+        // socket hosting parameters
+        std::pair<string, std::pair<string, string>>("rpc_port", std::pair<string, string>("5001",
+            "Port to host the rpc service (default is 5001)")),
+        std::pair<string, std::pair<string, string>>("serial_port", std::pair<string, string>("9911",
+            "Port to host the serial communication (default is 9911)")),
 
-    int rpc_port = 5001;
-    if (argc > 1) {
-        rpc_port = atoi(argv[1]);
-        if (argc > 2) {
-            Serial = SerialClass(atoi(argv[2]));
+        // emulation parameters
+        std::pair<string, std::pair<string, string>>("time", std::pair<string, string>("1",
+            "Time multiplier (default is 1)")),
+
+        // misc.
+        std::pair<string, std::pair<string, string>>("help", std::pair<string, string>("", "This menu")),
+    };
+
+    unordered_map<string, string> params_clean;
+    for (auto it = params.begin(); it != params.end(); it++)
+        params_clean.insert(std::pair<string, string>(it->first, it->second.first));
+
+    bool stop = false;
+    for (int i = 1; i < argc; i++) {
+        char* arg = argv[i];
+        string param = "";
+        if (i != argc - 1)
+            param = argv[i+1];
+        if (strlen(arg) < 3 || arg[0] != '-' || arg[1] != '-') {
+            std::cout << "Unknown argument " << arg << std::endl;
+            stop = true;
+        } else {
+            auto params_iter = params_clean.find(arg + 2 /* Skip the '--' */);
+            if (params_iter == params_clean.end()) {
+                std::cout << "Unknown argument " << arg << std::endl;
+                stop = true;
+            } else {
+                params_iter->second = param;
+                if (strcmp(arg, "--help") != 0)
+                    i++;
+                else
+                    stop = true;
+            }
         }
     }
+
+    if (argc == 2 && strcmp(argv[1], "--help") == 0)
+        stop = true;
+
+    if (stop) {
+        string err = "Usage: " + string(argv[0]) + " [options]\n";
+        err += "Options:\n";
+        for (auto it = params.begin(); it != params.end(); it++)
+            err += "\t--" + it->first + " <arg>: " + it->second.second + " (default is " + it->second.first + ")\n";
+        std::cout << err;
+        return 1;
+    }
+
+    g_time_multiplier = atof(params_clean.find("time")->second.c_str());
+    int rpc_port = atoi(params_clean.find("rpc_port")->second.c_str());
+    Serial = SerialClass(atoi(params_clean.find("serial_port")->second.c_str()));
+
+    std::cout << "Shammam v1.0.0" << std::endl;
+    std::cout << "Running with time multiplier: " << g_time_multiplier << std::endl;
 
     runRPC("0.0.0.0:"+std::to_string(rpc_port));
 
