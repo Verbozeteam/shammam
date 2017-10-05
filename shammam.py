@@ -10,6 +10,8 @@ parser.add_argument('-pt', '--port', default=5001, help='Port to host the emulat
 parser.add_argument('-spt', '--serial_port', default=9911, help='Port to host the serial communication on (default is 991)')
 parser.add_argument('-n', '--name', default='shammam', help='Name of the emulator instance (an executable with that name will be generated) (default is "shammam")')
 parser.add_argument('-t', '--time', default=1, help='Time multiplier (default is 1)')
+parser.add_argument('-d', '--debug', action='store_true', required=False, help='Enable g++ debugging (pass -g)')
+parser.add_argument('-gcc', '--gcc', default='', help='Extra arguments to pass to gcc')
 cmd_args = parser.parse_args()
 
 tmp_folder = ".{}_tmp".format(cmd_args.name)
@@ -39,6 +41,9 @@ RPC_PORT = cmd_args.port
 SERIAL_PORT = cmd_args.serial_port
 TIME_MULTIPLIER = cmd_args.time
 PROTOCOL_FILENAME = "arduino_protocol.proto"
+EXTRA_ARGS = cmd_args.gcc
+if cmd_args.debug:
+    EXTRA_ARGS += " -g"
 
 if cmd_args.include != None:
     INCLUDE_DIRS += " " + " ".join(map(lambda i: "-I{}".format(i), cmd_args.include))
@@ -54,10 +59,11 @@ else:
         exit(1)
 
 protoc_command = "protoc --cpp_out={} --grpc_out={} -I{} {} --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin)".format(tmp_folder, tmp_folder, tmp_folder, PROTOCOL_FILENAME)
-gcc_cmd = "g++ {} {} {} -include {}/Arduino.h {} -o {}".format(CPPFLAGS, LDFLAGS, INCLUDE_DIRS, BASE_INCLUDE_DIR, SOURCE_FILES, OUT_FILE)
+gcc_cmd = "g++ {} {} {} -include {}/Arduino.h {} -o {} {}".format(CPPFLAGS, LDFLAGS, INCLUDE_DIRS, BASE_INCLUDE_DIR, SOURCE_FILES, OUT_FILE, EXTRA_ARGS)
 
 succeeded = False
 if not os.system(protoc_command): # compile the protocol
+    print (gcc_cmd)
     if not os.system(gcc_cmd):
         succeeded = True
 
