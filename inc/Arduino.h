@@ -74,6 +74,7 @@ void delayMicroseconds(unsigned int us);
 
 void attachInterrupt(uint8_t, void (*)(void), int mode);
 void detachInterrupt(uint8_t);
+uint8_t digitalPinToInterrupt(uint8_t);
 
 void pinMode(int pin, int mode);
 void digitalWrite(int  pin, int output);

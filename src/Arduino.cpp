@@ -39,6 +39,10 @@ void detachInterrupt(uint8_t) {
 
 }
 
+uint8_t digitalPinToInterrupt(uint8_t pin) {
+    return pin;
+}
+
 void pinMode(int pin, int mode) {
 }
 
