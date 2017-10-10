@@ -34,12 +34,10 @@ extern "C"{
 #define FALLING 2
 #define RISING 3
 
-// undefine stdlib's abs if encountered
-#ifdef abs
-#undef abs
-#endif
+// #ifndef abs
+// #define abs(x) ((x)>0?(x):-(x))
+// #endif
 
-#define abs(x) ((x)>0?(x):-(x))
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 #define radians(deg) ((deg)*DEG_TO_RAD)
 #define degrees(rad) ((rad)*RAD_TO_DEG)
