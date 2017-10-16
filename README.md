@@ -11,6 +11,7 @@ gRPC allows you to write your testing code in any language (see [supported langu
 # Installation
 - shammam needs [gRPC](https://grpc.io/docs/quickstart/cpp.html) to run. Make sure you also install Protocol Buffers (as explained in the link).
 - A working g++ installation.
+- pkg-config (`brew install pkg-config` on Mac or `sudo apt-get install pkg-config` on Linux)
 
 # Usage
 `shammam -s <your source files>`
