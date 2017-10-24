@@ -1,5 +1,5 @@
-#ifndef __SHAMMAM_SIMULATION__
-#define __SHAMMAM_SIMULATION__
+#ifndef __SHAMMAM_SIMULATION_H__
+#define __SHAMMAM_SIMULATION_H__
 
 #include <Serial.h>
 #include <stdlib.h>

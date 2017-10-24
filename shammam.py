@@ -30,7 +30,7 @@ for F in cmd_args.source:
         exit(1)
 
 INSTALL_DIR = "/Users/hasan/verboze/shammam"
-CPPFLAGS = "-std=c++11"
+CPPFLAGS = "-std=c++11 -D__SHAMMAM_SIMULATION__"
 BASE_INCLUDE_DIR = "{}/inc".format(INSTALL_DIR)
 BASE_SRC_DIR = "{}/src".format(INSTALL_DIR)
 INCLUDE_DIRS = "-I{} -I{} -Iprotocol".format(BASE_INCLUDE_DIR, tmp_folder)
