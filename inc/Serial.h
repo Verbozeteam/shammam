@@ -7,13 +7,14 @@ using std::string;
 class SerialClass {
     int m_socketfd;
     int m_port;
+    bool m_is_client;
 
     int m_client_socketfd;
 
     string m_buffer;
 
 public:
-    SerialClass(int port = 9911);
+    SerialClass(int port = 9911, bool isClient = false);
     void begin(int baud);
 
     void print(char val);

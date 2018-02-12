@@ -27,6 +27,10 @@ unsigned long millis() {
     return (long) ((float)cur_time * g_time_multiplier);
 }
 
+void delay(unsigned long) {
+
+}
+
 void delayMicroseconds(unsigned int us) {
 
 }

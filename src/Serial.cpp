@@ -9,45 +9,78 @@
 #include <sys/time.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
-SerialClass::SerialClass(int port) {
+SerialClass::SerialClass(int port, bool isClient) {
     m_port = port;
+    m_is_client = isClient;
     m_socketfd = -1;
     m_client_socketfd = -1;
 }
 
 void SerialClass::begin(int baud) {
-    struct sockaddr_in address;
-    int opt = 1;
+    if (!m_is_client) {
+        struct sockaddr_in address;
+        int opt = 1;
 
-    printf("Serial communication on port %d\n", m_port);
+        printf("Serial communication on port %d\n", m_port);
 
-    m_socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (!m_socketfd) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(m_socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-    {
-        perror("setsockopt failed");
-        exit(EXIT_FAILURE);
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(m_port);
+        m_socketfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (!m_socketfd) {
+            perror("socket failed");
+            exit(EXIT_FAILURE);
+        }
+        // Forcefully attaching socket to the port 8080
+        if (setsockopt(m_socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+        {
+            perror("setsockopt failed");
+            exit(EXIT_FAILURE);
+        }
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(m_port);
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(m_socketfd, (struct sockaddr *)&address,
-                                 sizeof(address))<0)
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    if (listen(m_socketfd, 10) < 0)
-    {
-        perror("listen failed");
-        exit(EXIT_FAILURE);
+        // Forcefully attaching socket to the port 8080
+        if (bind(m_socketfd, (struct sockaddr *)&address,
+                                     sizeof(address))<0)
+        {
+            perror("bind failed");
+            exit(EXIT_FAILURE);
+        }
+        if (listen(m_socketfd, 10) < 0)
+        {
+            perror("listen failed");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        const char* server_name = "localhost";
+        const int server_port = m_port;
+
+        struct sockaddr_in server_address;
+        memset(&server_address, 0, sizeof(server_address));
+        server_address.sin_family = AF_INET;
+
+        // creates binary representation of server name
+        // and stores it as sin_addr
+        // http://beej.us/guide/bgnet/output/html/multipage/inet_ntopman.html
+        inet_pton(AF_INET, server_name, &server_address.sin_addr);
+
+        // htons: port in network order format
+        server_address.sin_port = htons(server_port);
+
+        // open a stream socket
+        if ((m_client_socketfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+            printf("could not create socket\n");
+            exit(EXIT_FAILURE);
+        }
+
+        // TCP is connection oriented, a reliable connection
+        // **must** be established before any data is exchanged
+        if (connect(m_client_socketfd, (struct sockaddr*)&server_address,
+                    sizeof(server_address)) < 0) {
+            printf("could not connect to server\n");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -115,12 +148,13 @@ char SerialClass::read() {
 }
 
 void SerialClass::__update__() {
-    if (m_socketfd != -1) {
+    if (m_socketfd != -1 || m_client_socketfd != -1) {
         timeval tv = {0};
 
         fd_set read_fds;
         FD_ZERO(&read_fds);
-        FD_SET(m_socketfd, &read_fds);
+        if (m_socketfd != -1)
+            FD_SET(m_socketfd, &read_fds);
         if (m_client_socketfd != -1)
             FD_SET(m_client_socketfd, &read_fds);
 
@@ -128,7 +162,7 @@ void SerialClass::__update__() {
 
         int ret = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
         if (ret > 0) {
-            if (FD_ISSET(m_socketfd, &read_fds)) {
+            if (m_socketfd != -1 && FD_ISSET(m_socketfd, &read_fds)) {
                 if (m_client_socketfd != -1)
                     close(m_client_socketfd);
                 struct sockaddr_in address;
